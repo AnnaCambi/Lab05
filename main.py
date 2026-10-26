@@ -35,8 +35,14 @@ def main(page: ft.Page):
     # ListView per mostrare la lista di strumenti aggiornata
     lista_strumenti = ft.ListView(expand=True, spacing=5, padding=10, auto_scroll=True)
 
-    # Tutti i TextField per le info necessarie per aggiungere un nuovo strumento (tipo, marca, anno, contatore posti)
-    # TODO
+    # Tutti i TextField per le info necessarie per aggiungere un nuovo strumento (tipo, marca, anno, contatore posti) !!!non c'è contatore posti ma valore!!!
+    '''uso TextField per poter permettere all'utente di digitare le informazioni relative allo strumento, label è l'etichetta che compare relativa al campo da inserire; 
+    expand = True permette al campo di occupare tutto lo spazip orizzontale sulla riga '''
+    input_tipo = ft.TextField(label="Tipo", expand = True)
+    input_marca = ft.TextField(label="Marca", expand = True)
+    input_anno = ft.TextField(label="Anno", expand = True)
+    input_valore = ft.TextField(value = "0", label ="Valore", width=100, text_align=ft.TextAlign.CENTER)  ##campo del valore inizializzato a zero e testo centrato
+
 
     # --- FUNZIONI APP ---
     def aggiorna_lista_strumenti():
@@ -55,14 +61,61 @@ def main(page: ft.Page):
         txt_responsabile.value = f"Responsabile: {deposito.get_responsabile()}"
 
     # Handlers per la gestione dei pulsanti utili all'inserimento di un nuovo strumento
-    # TODO
+    def decrementa_valore(e): #funzione per decrementare il prezzo di 10 euro
+        try:
+            valore = float(input_valore.value)
+            if valore >= 10:
+                input_valore.value = str(int(valore) - 10)
+                page.update()
+        except ValueError:
+            input_valore.value = "0"
+            page.update()
+
+    def incrementa_valore(e): #funzione per incrementare il prezzo di 10 euro
+        try:
+            valore = float(input_valore.value)
+            input_valore.value = str(int(valore + 10))
+            page.update()
+        except ValueError:
+            input_valore.value = "0"
+            page.update()
+
+    def inserisci_nuovo_strumento(e): # funzione per inserire un nuovo strumento nel sistema 
+        tipo = input_tipo.value.strip() #prendo i valori che sono stati digitati dall'utente 
+        marca = input_marca.value.strip()
+        anno_str = input_anno.value.strip()
+        valore_str = input_valore.value.strip()
+
+        if not tipo or not marca or not anno_str or not valore_str: #controllo che tutti i dati necessari siano presenti e nel formato corretto
+            alert.show_alert("Compilare tutti i campi!")
+            return
+
+        try:
+            anno = int(anno_str)
+            valore = float(valore_str)
+        except ValueError:
+            alert.show_alert("L'anno e il valore devono essere numeri validi!")
+            return
+
+        deposito.aggiungi_strumento(tipo, marca, anno, valore)
+
+#pulizia campi testo dell'interfaccia grafica 
+        input_tipo.value = ""
+        input_marca.value = ""
+        input_anno.value = ""
+        input_valore.value = "0"
+
+        aggiorna_lista_strumenti() #aggiorno lista che compare a schermo
+        page.update()
 
     # --- EVENTI ---
     toggle_cambia_tema = ft.Switch(label="Tema scuro", value=True, on_change=cambia_tema)
     pulsante_conferma_responsabile = ft.Button("Conferma", on_click=conferma_responsabile)
 
     # Pulsanti per la gestione dell'inserimento di un nuovo strumento
-    # TODO
+    btn_meno = ft.IconButton(icon=ft.Icons.REMOVE, on_click=decrementa_valore)
+    btn_piu = ft.IconButton(icon=ft.Icons.ADD, on_click=incrementa_valore)
+    pulsante_aggiungi = ft.Button("Aggiungi strumento", on_click=inserisci_nuovo_strumento)
 
     # --- LAYOUT ---
     page.add(
@@ -80,7 +133,24 @@ def main(page: ft.Page):
                alignment=ft.MainAxisAlignment.CENTER),
 
         # Sezione 3
-        # TODO
+        ft.Divider(),
+        ft.Text("Aggiungi Nuovo Strumento", size=20),
+
+        # Prima riga di input: Tipo, Marca, Anno
+        ft.Row(controls=[input_tipo, input_marca, input_anno]),
+
+        # Seconda riga: Contatore Valore + Pulsante Aggiungi
+        ft.Row(
+            controls=[
+                ft.Text("Valore:"),
+                btn_meno,
+                input_valore,
+                btn_piu,
+                pulsante_aggiungi
+            ],
+            alignment=ft.MainAxisAlignment.CENTER
+        ),
+
 
         # Sezione 4
         ft.Divider(),
